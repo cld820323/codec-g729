@@ -10,13 +10,13 @@
 #include "codec729.h"
 
 int CdxeCodec_G729::addData(uint8_t _data[], int _size) {
-  return 1;
-}
-
-int CdxeCodec_G729::encode() {
   return 0;
 }
 
-int CdxeCodec_G729::decode() {
+int CdxeCodec_G729::encode(vector<uint8_t>& _res) {
+  return 0;
+}
+
+int CdxeCodec_G729::decode(vector<uint8_t>& _res) {
   return 0;
 }

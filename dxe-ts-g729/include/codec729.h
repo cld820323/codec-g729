@@ -24,17 +24,12 @@ public:
 
   /** Закодировать в кодек
    * \return размер  результата*/
-  int encode();
+  int encode(vector<uint8_t>& _res);
 
   /** Декодировать в линейный
    * \return размер  результата*/
-  int decode();
+  int decode(vector<uint8_t>& _res);
 
-  /** Получить результат последней конверсии
-   * @return ук-ль на буффер */
-  const vector<uint8_t>& getResult(){
-    return buffer;
-  }
 public:
   CdxeCodec_G729()
   {
