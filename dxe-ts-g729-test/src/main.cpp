@@ -20,6 +20,7 @@ using namespace std;
 
 void test1(){
 
+  vector<uint8_t> res;
   //тестовые данные
   uint8_t g729_data[80];
   for(int i=0; i<80; i++)
@@ -29,7 +30,7 @@ void test1(){
   g729.addData(g729_data, 80);
   g729.addData(g729_data, 80);
 
-  int len = g729.decode();
+  int len = g729.decode(res);
 
   TEST(len == 80);//???
   //тесты сам придумаешь на входные данные
