@@ -10,7 +10,7 @@
 #include "codec729.h"
 
 int CdxeCodec_G729::addData(uint8_t _data[], int _size) {
-  return 0;
+  return 1;
 }
 
 int CdxeCodec_G729::encode() {
