@@ -22,13 +22,14 @@ public:
    * \return размер  результата*/
   int addData(uint8_t* _data, int _size);
 
-  /** Закодировать/декодировать, от выбранного направления
-   * \return размер  результата*/
-  int run();
+  /** Очистить буфер результата
+   * \return NULL*/
+  uint8_t* releaseResult();
 
-  /** Ввернуть укзатель на результат
+  /** Закодировать/декодировать, от выбранного направления.
+   * Ввернуть укзатель на результат
    * @return результат   */
-  const uint8_t* getResult() const;
+  const uint8_t* getResult(int& _size) const;
 
 public:
   enum eCodeDir{
