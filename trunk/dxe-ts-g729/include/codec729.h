@@ -20,22 +20,30 @@ public:
    * \param _data - массив данных
    * \param _size - размер
    * \return размер  результата*/
-  int addData(uint8_t _data[], int _size);
+  int addData(uint8_t* _data, int _size);
 
-  /** Закодировать в кодек
+  /** Закодировать/декодировать, от выбранного направления
    * \return размер  результата*/
-  int encode(vector<uint8_t>& _res);
+  int encode();
 
-  /** Декодировать в линейный
-   * \return размер  результата*/
-  int decode(vector<uint8_t>& _res);
+  /** Ввернуть укзатель на результат
+   * @return результат   */
+  const uint8_t* getResult() const;
 
 public:
-  CdxeCodec_G729()
+  enum eCodeDir{
+      _toLinear = 0
+    , _toCodec
+  };
+public:
+  CdxeCodec_G729(eCodeDir _dir)
+  : direction(_dir)
   {
     buffer.reserve(1024);
   }
 private:
+  ///направление кодирования
+  const eCodeDir direction;
 //...
   vector<uint8_t> buffer;
 };
