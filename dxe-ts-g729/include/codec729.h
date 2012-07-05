@@ -11,6 +11,13 @@
 #include <stdint.h>
 #include <vector>
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "typedef.h"
+#include "basic_op.h"
+#include "ld8k.h"
+
 using namespace std;
 
 class CdxeCodec_G729{
@@ -33,8 +40,8 @@ public:
 
 public:
   enum eCodeDir{
-      _toLinear = 0
-    , _toCodec
+      _coder = 0
+    , _decoder
   };
 public:
   CdxeCodec_G729(eCodeDir _dir)
