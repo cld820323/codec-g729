@@ -36,7 +36,7 @@ public:
   /** Закодировать/декодировать, от выбранного направления.
    * Ввернуть укзатель на результат
    * @return результат   */
-  const uint8_t* getResult(int& _size) const;
+  const uint8_t* getResult(int& _size);
 
 public:
   enum eCodeDir{
@@ -47,13 +47,17 @@ public:
   CdxeCodec_G729(eCodeDir _dir)
   : direction(_dir)
   {
-    buffer.reserve(1024);
+    buffer.reserve(1);
+    /*Init_Pre_Process();
+    Init_Coder_ld8k();*/
   }
 private:
   ///направление кодирования
   const eCodeDir direction;
 //...
   vector<uint8_t> buffer;
+  uint8_t *tmp_buffer;
+  int SIZE;
 };
 
 #endif /* CODEC729_H_ */
