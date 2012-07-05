@@ -42,17 +42,27 @@ void test1(){
   printf("Output encoded and decoded file:  %s\n", encdecFile);
 
   //копируем заголовок аудиофайла и втыкаем его в выходной файл
-  printf("Copy 0x%x bytes of wav header\n", HEADER_SIZE*2);
-  uint8_t *buffer = new uint8_t[HEADER_SIZE];
+  printf("Copy 0x%x bytes of wav header\n", HEADER_SIZE);
+  uint8_t buffer[2000];
   fread(buffer, sizeof(uint8_t), HEADER_SIZE, f_original);
   fwrite(buffer, sizeof(uint8_t), HEADER_SIZE, f_codec);
-  delete[] buffer;
 
   CdxeCodec_G729 *coder = new CdxeCodec_G729(CdxeCodec_G729::_coder);//кодер
-  //coder->addData(uint8_t)
   CdxeCodec_G729 *decoder = new CdxeCodec_G729(CdxeCodec_G729::_decoder);//декодер
-}
+  int size = 1, getSize;
+  while(size){
+	  size = fread(buffer, sizeof(uint8_t), HEADER_SIZE, f_original);
 
+	  coder->addData(buffer,size);
+	  //decoder->addData(const_cast<uint8_t*>(coder->getResult(getSize)),getSize);
+	  uint8_t *b = const_cast<uint8_t*>(coder->getResult(getSize));
+	  decoder->addData(b,getSize);
+
+	  fwrite(decoder->getResult(getSize), sizeof(uint8_t), getSize, f_codec);
+	  coder->releaseResult();
+	  decoder->releaseResult();
+  }
+}
 
 int main() {
   //_IOFBF
