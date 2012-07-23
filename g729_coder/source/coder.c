@@ -49,17 +49,7 @@ int main(int argc, char *argv[] )
 /*--------------------------------------------------------------------------*
  * Open speech file and result file (output serial bit stream)              *
  *--------------------------------------------------------------------------*/
-  if ( (f_speech = fopen(inputFile, "rb")) == NULL) {
-     printf("Error opening file  %s !!\n", inputFile);
-     exit(0);
-  }
-  printf("Linear file    :  %s\n", inputFile);
-
-  if ( (f_serial = fopen(encdecFile, "wb")) == NULL) {
-     printf("Error opening file  %s !!\n", encdecFile);
-     exit(0);
-  }
-  /*
+#ifndef	DEBUG
   printf("Output encoded and decoded file:  %s\n", encdecFile);
   if ( argc != 3 )
     {
@@ -86,8 +76,19 @@ int main(int argc, char *argv[] )
      printf("%s - Error opening file  %s !!\n", argv[0], argv[2]);
      exit(0);
   }
-  printf(" Output bitstream file:  %s\n", argv[2]);*/
+  printf(" Output bitstream file:  %s\n", argv[2]);
+#else
+  if ( (f_speech = fopen(inputFile, "rb")) == NULL) {
+     printf("Error opening file  %s !!\n", inputFile);
+     exit(0);
+  }
+  printf("Linear file    :  %s\n", inputFile);
 
+  if ( (f_serial = fopen(encdecFile, "wb")) == NULL) {
+     printf("Error opening file  %s !!\n", encdecFile);
+     exit(0);
+  }
+#endif
 /*--------------------------------------------------------------------------*
  * Initialization of the coder.                                             *
  *--------------------------------------------------------------------------*/
@@ -109,10 +110,14 @@ int main(int argc, char *argv[] )
   {
     Pre_Process(new_speech, L_FRAME);
     Coder_ld8k(prm, syn);
-    //prm2bits_ld8k( prm, serial);
 
-    //if (fwrite(serial, sizeof(Word16), SERIAL_SIZE, f_serial) != SERIAL_SIZE)
+#ifndef COMPRESS
+    prm2bits_ld8k( prm, serial);
+
+    if (fwrite(serial, sizeof(Word16), SERIAL_SIZE, f_serial) != SERIAL_SIZE)
+#else
     if (fwrite(prm, sizeof(Word16), PRM_SIZE, f_serial) != PRM_SIZE)
+#endif
       printf("Write Error for frame %d\n", frame);
 
     frame++;
