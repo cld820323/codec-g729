@@ -23,19 +23,14 @@ using namespace std;
 
 const int HEADER_SIZE = 0x30;
 
-const char* inputFile = "linear.wav";
-const char* encdecFile = "output.wav";
+const char* inputFile = "linear.in";
+const char* encdecFile = "encdec.out";
+const char* codFile = "coded.cod";
 
 void test1(){
 
   FILE *f_original;               /* File of speech data                   */
-  FILE *f_codec;               /* File of serial bits for transmission  */
-
-  // get length of file:
-  f_original = fopen(inputFile, "rb");
-  fseek (f_original, 0, SEEK_END);
-  int nFileLen = ftell(f_original);
-  fclose (f_original);
+  FILE *f_coded;               /* File of serial bits for transmission  */
 
   if ( (f_original = fopen(inputFile, "rb")) == NULL) {
      printf("Error opening file  %s !!\n", inputFile);
@@ -43,75 +38,81 @@ void test1(){
   }
   printf("Linear file    :  %s\n", inputFile);
 
-  if ( (f_codec = fopen(encdecFile, "wb")) == NULL) {
-     printf("Error opening file  %s !!\n", encdecFile);
+  if ( (f_coded = fopen(codFile, "wb")) == NULL) {
+     printf("Error opening file  %s !!\n", codFile);
      return;
   }
-  printf("Output encoded and decoded file:  %s\n", encdecFile);
-
-  //копируем заголовок аудиофайла и втыкаем его в выходной файл
-  printf("Copy 0x%x bytes of wav header\n", HEADER_SIZE);
-  uint8_t buffer[2000];
-  //fread(buffer, sizeof(uint8_t), HEADER_SIZE, f_original);
-  //fwrite(buffer, sizeof(uint8_t), HEADER_SIZE, f_codec);
 
   CdxeCodec_G729 *coder = new CdxeCodec_G729(CdxeCodec_G729::_coder);//кодер
-  CdxeCodec_G729 *decoder = new CdxeCodec_G729(CdxeCodec_G729::_decoder);//декодер
-  int size = 1, getSize = 0;
-  Init_Pre_Process();
-  Init_Coder_ld8k();
 
+  uint8_t speech[L_G729A_FRAME*2];
+  clock_t start, finish;
+  double duration;
+  start = clock();
+  int frame = 0;
 
-  extern Word16 *new_speech;     /* Pointer to new speech data            */
-  Word16 prm[PRM_SIZE];          /* Analysis parameters.                  */
-  Word16 serial[SERIAL_SIZE];    /* Output bitstream buffer               */
-  Word16 syn[L_FRAME] = {0};           /* Buffer for synthesis speech           */
-
-  Word16 *tmpMass = new Word16[nFileLen];
-  Word16 Buf[L_FRAME];
-
-  int frame =0;
-  float start=clock();
-  while( fread(Buf, sizeof(Word16), L_FRAME, f_original) == L_FRAME){
-	  for(int i=0; i<L_FRAME; i++){
-		  tmpMass[frame*L_FRAME]=Buf[i];
-	  }
-	  frame++;
-  }
-  frame =0;
-  for(int i=0; i<500; i++)
+  while (fread(speech, sizeof(uint8_t), L_G729A_FRAME*2, f_original) == L_G729A_FRAME*2)
   {
-    for(int i=0; i<L_FRAME; i++){
-    	new_speech[i]=tmpMass[frame*L_FRAME];
-	}
-	Pre_Process(new_speech, L_FRAME);
-    Coder_ld8k(prm, syn);
-    prm2bits_ld8k( prm, serial);
-
-    frame++;
-    fwrite(serial, sizeof(Word16), SERIAL_SIZE, f_codec);
+	coder->addData(speech,L_G729A_FRAME*2);
+	int size;
+  	const uint8_t *serial = coder->getResult(size);
+	fwrite(serial, sizeof(char), size, f_coded);
+	coder->releaseResult();
+	printf("Encode frame %d\r", ++frame);
   }
-  float stop=clock();
-  printf("Coded %d frames\r", frame);
-  printf("Time = %f seconds\r", (stop-start)/CLOCKS_PER_SEC);
-  delete[] tmpMass;
+  fclose(f_original);
+  fclose(f_coded);
 
-  /*while(size){
-	  uint8_t *b;
-	  while(getSize==0){
-		size = fread(buffer, sizeof(uint8_t), HEADER_SIZE, f_original);
-		if(size==0)break;
-		coder->addData(buffer,size);
-		b = const_cast<uint8_t*>(coder->getResult(getSize));
-	  }
+  finish = clock();
+  duration = (double)(finish - start) / CLOCKS_PER_SEC;
+  printf( "\n%2.1f seconds\n", duration );
 
-	  //decoder->addData(const_cast<uint8_t*>(coder->getResult(getSize)),getSize);
-	  //decoder->addData(b,getSize);
-	  fwrite(b, sizeof(uint8_t), getSize, f_codec);
-	  //fwrite(decoder->getResult(getSize), sizeof(uint8_t), getSize, f_codec);
-	  //coder->releaseResult();
-	  //decoder->releaseResult();
-  }*/
+  delete coder;
+}
+
+void test2(){
+
+  FILE *f_coded;
+  FILE *f_decoded;
+
+  if ( (f_coded = fopen(codFile, "rb")) == NULL) {
+	 printf("Error opening file  %s !!\n", codFile);
+	 return;
+  }
+  printf("Codede file    :  %s\n", codFile);
+
+  if ( (f_decoded = fopen(encdecFile, "wb")) == NULL) {
+	 printf("Error opening file  %s !!\n", encdecFile);
+	 return;
+  }
+
+  CdxeCodec_G729 *decoder = new CdxeCodec_G729(CdxeCodec_G729::_decoder);//декодер
+
+  uint8_t serial[L_G729A_FRAME_COMPRESSED];
+  clock_t start, finish;
+  double duration;
+  start = clock();
+  int frame = 0;
+
+  while (fread(serial, sizeof(char), L_G729A_FRAME_COMPRESSED, f_coded) == L_G729A_FRAME_COMPRESSED)
+  {
+	decoder->addData(serial,L_G729A_FRAME_COMPRESSED);
+
+	printf("Decode frame %d\r", ++frame);
+  }
+	int size;
+	const uint8_t *encdec = decoder->getResult(size);
+	fwrite(encdec, sizeof(char), size, f_decoded);
+	decoder->releaseResult();
+
+  fclose(f_coded);
+  fclose(f_decoded);
+
+  finish = clock();
+  duration = (double)(finish - start) / CLOCKS_PER_SEC;
+  printf( "\n%2.1f seconds\n", duration );
+
+  delete decoder;
 }
 
 int main() {
@@ -120,7 +121,8 @@ int main() {
     setvbuf(   stderr, NULL, _IOLBF , 0);
     setvbuf(   stdin, NULL, _IOLBF , 0);
 
-    test1();
+    test1();//опаньки, и закодировали
+    test2();//опаньки, и раскодировали
 
 	return 0;
 }
