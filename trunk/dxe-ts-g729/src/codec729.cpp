@@ -1,11 +1,9 @@
-#include "../include/codec729.h"
 /*
  * codec729.cpp
  *
  *  Created on: 02.07.2012
- *      Author: kulpanov!
+ *      Author: krasnozhon!
  */
-
 
 #include "codec729.h"
 
@@ -16,34 +14,44 @@ int CdxeCodec_G729::addData(uint8_t* _data, int _size){
 
 uint8_t* CdxeCodec_G729::releaseResult(){
 	delete [] tmp_buffer;
-	return 0;
+	return NULL;
 }
 
-
 const uint8_t* CdxeCodec_G729::getResult(int& _size) {
-	tmp_buffer = new uint8_t[buffer.size()];
-	Word16 frame[SERIAL_SIZE];
-	Word16 prm[PRM_SIZE] = {0};
-	Word16 syn[L_FRAME] = {0};
 
-	_size = 0;
-	while( buffer.size()/2 >= L_FRAME)
-	{
-		_size += L_FRAME*2;
-		for(int i;i<L_FRAME*2;i+=2){
-			frame[i] = buffer[i];
-			frame[i] |= (Word16)buffer[i+1]<<8;
+	if(direction==_coder){
+		tmp_buffer = new uint8_t[buffer.size()*2];
+		_size = 0;
+		while (buffer.size() >= L_G729A_FRAME*2){
+
+			short inBuf[L_G729A_FRAME] = {0};
+			for(int i=0,j=0; j<L_G729A_FRAME; i+=2,j++){
+				inBuf[j] = buffer[i]|(short)buffer[i+1]<<8;
+			}
+			buffer.erase(buffer.begin(),buffer.begin()+L_G729A_FRAME*2);
+			encoder(hEncoder, inBuf, tmp_buffer+_size);
+			_size+=L_G729A_FRAME_COMPRESSED;
 		}
-		buffer.erase(buffer.begin(),buffer.begin()+L_FRAME*2);
-
-		Pre_Process(frame, L_FRAME);
-		Coder_ld8k(prm, syn);
-		prm2bits_ld8k( prm, frame);
-
-		for(int i;i<SERIAL_SIZE*2;i+=2){
-			tmp_buffer[i] = frame[i]&0xFF;
-			tmp_buffer[i+1] = frame[i]>>8;
+	}else
+	if(direction==_decoder){
+		short *outBuf = new short [buffer.size()*2*10];
+		_size = 0;
+		while(buffer.size() >= L_G729A_FRAME_COMPRESSED){
+			uint8_t serial[L_G729A_FRAME_COMPRESSED] = {0};
+			for(int i=0; i<L_G729A_FRAME_COMPRESSED; i++){
+				serial[i] = buffer[i];
+			}
+			buffer.erase(buffer.begin(),buffer.begin()+L_G729A_FRAME_COMPRESSED);
+			decoder(hDecoder, serial, outBuf+_size/2);
+			_size+=L_G729A_FRAME*2;
 		}
+		tmp_buffer = new uint8_t[_size];
+		for(int i=0,j=0; i<_size; i+=2,j++){
+			tmp_buffer[i] = outBuf[j]&0xFF;
+			tmp_buffer[i+1] = (outBuf[j]>>8)&0xFF;
+		}
+
+		delete [] outBuf;
 	}
 
 	return tmp_buffer;

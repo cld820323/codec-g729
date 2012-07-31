@@ -14,9 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "typedef.h"
-#include "basic_op.h"
-#include "ld8k.h"
+#include "../EasyG729A.h"
 
 using namespace std;
 
@@ -47,9 +45,14 @@ public:
   CdxeCodec_G729(eCodeDir _dir)
   : direction(_dir)
   {
-    buffer.reserve(1);
-    /*Init_Pre_Process();
-    Init_Coder_ld8k();*/
+    buffer.reserve(300);
+	if(direction==_coder)hEncoder = init_encoder( );
+    if(direction==_decoder)hDecoder = init_decoder( );
+  }
+
+  ~CdxeCodec_G729(){
+	  if(direction==_coder)release_encoder(hEncoder);
+	  if(direction==_decoder)release_decoder(hDecoder);
   }
 private:
   ///направление кодирования
@@ -57,7 +60,9 @@ private:
 //...
   vector<uint8_t> buffer;
   uint8_t *tmp_buffer;
-  int SIZE;
+
+  //хэндл кодера
+  CODER_HANDLE hEncoder,hDecoder;
 };
 
 #endif /* CODEC729_H_ */
