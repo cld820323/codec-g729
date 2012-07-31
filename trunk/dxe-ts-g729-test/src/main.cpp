@@ -12,6 +12,7 @@ using namespace std;
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <windows.h>
 #include <process.h>
@@ -22,26 +23,28 @@ using namespace std;
   if(expr)printf("   PASS: (%s) at %d:%s\n", #expr, __LINE__, __FILE__);\
   else  printf("!  FAIL: (%s) at %d:%s\n", #expr, __LINE__, __FILE__)
 
-const int HEADER_SIZE = 0x30;
 
-const char* inPCM = "in.pcm.raw";
-const char* outPCM = "out.pcm.raw";
-const char* inG729 = "in.g729.raw";
-const char* outG729 = "out.pcm.pcm";
-
-void toG729(){
+void toG729(int Counter){
 
   FILE *f_original;               /* File of speech data                   */
   FILE *f_coded;               /* File of serial bits for transmission  */
 
-  if ( (f_original = fopen(inPCM, "rb")) == NULL) {
-     printf("Error opening file  %s !!\n", inPCM);
+  string inPCM = "linear";
+  string outG729 = "output";
+
+  string number;
+  sprintf(const_cast<char*>(number.c_str()),"%d",Counter);
+
+  inPCM = inPCM + ".wav";
+  outG729 = outG729+ number.c_str() + ".out";
+  if ( (f_original = fopen(inPCM.c_str(), "rb")) == NULL) {
+     printf("Error opening file  %s !!\n", inPCM.c_str());
      return;
   }
-  printf("Linear file    :  %s\n", inPCM);
+  printf("Linear file    :  %s\n", inPCM.c_str());
 
-  if ( (f_coded = fopen(outG729, "wb")) == NULL) {
-     printf("Error opening file  %s !!\n", outG729);
+  if ( (f_coded = fopen(outG729.c_str(), "wb")) == NULL) {
+     printf("Error opening file  %s !!\n", outG729.c_str());
      return;
   }
 
@@ -72,19 +75,28 @@ void toG729(){
   delete coder;
 }
 
-void toPCM(){
+
+void toPCM(int Counter){
 
   FILE *f_coded;
   FILE *f_decoded;
 
-  if ( (f_coded = fopen(inG729, "rb")) == NULL) {
-	 printf("Error opening file  %s !!\n", inG729);
+  string inG729 = "output";
+  string outPCM = "output";
+  string number;
+  sprintf(const_cast<char*>(number.c_str()),"%d",Counter);
+
+  inG729 = inG729 + number.c_str()+ ".out";
+  outPCM = outPCM+ number.c_str() + ".wav";
+
+  if ( (f_coded = fopen(inG729.c_str(), "rb")) == NULL) {
+	 printf("Error opening file  %s !!\n", inG729.c_str());
 	 return;
   }
-  printf("Codede file    :  %s\n", inG729);
+  printf("Codede file    :  %s\n", inG729.c_str());
 
-  if ( (f_decoded = fopen(outPCM, "wb")) == NULL) {
-	 printf("Error opening file  %s !!\n", outPCM);
+  if ( (f_decoded = fopen(outPCM.c_str(), "wb")) == NULL) {
+	 printf("Error opening file  %s !!\n", outPCM.c_str());
 	 return;
   }
 
@@ -117,9 +129,20 @@ void toPCM(){
   delete decoder;
 }
 
-void __cdecl thread_proc(void* pParam)
+
+#define THREAD_NUM	30
+
+unsigned Counter=THREAD_NUM;
+unsigned __stdcall threadProc( void* pArguments )
 {
-printf("Hello from thread!\n");
+	//printf( "ID of %d-th thread = %d \n", Counter, (int)GetCurrentThreadId());
+
+	toG729((int)GetCurrentThreadId());//опаньки, и закодировали
+	toPCM((int)GetCurrentThreadId());//опаньки, и раскодировали
+
+	Counter--;
+    _endthreadex( 0 );
+    return 0;
 }
 
 int main() {
@@ -128,11 +151,15 @@ int main() {
     setvbuf(   stderr, NULL, _IOLBF , 0);
     setvbuf(   stdin, NULL, _IOLBF , 0);
 
-    _beginthread(thread_proc, 0, 0);
-
-    /*
-   toG729();//опаньки, и закодировали
-   toPCM();//опаньки, и раскодировали*/
+    HANDLE hThread[THREAD_NUM];
+    for(int i=0; i<THREAD_NUM; i++)
+    {
+		unsigned threadID;
+		hThread[i] = (HANDLE)_beginthreadex( NULL, 0, &threadProc, NULL, 0, &threadID );
+    }
+    while(Counter){Sleep(0);}
+    for(int i=0; i<THREAD_NUM; i++)CloseHandle(hThread[i]);
 
 	return 0;
 }
+
