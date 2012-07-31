@@ -23,23 +23,24 @@ using namespace std;
 
 const int HEADER_SIZE = 0x30;
 
-const char* inputFile = "linear.in";
-const char* encdecFile = "encdec.out";
-const char* codFile = "coded.cod";
+const char* inPCM = "in.pcm.raw";
+const char* outPCM = "out.pcm.raw";
+const char* inG729 = "in.g729.raw";
+const char* outG729 = "out.pcm.pcm";
 
-void test1(){
+void toG729(){
 
   FILE *f_original;               /* File of speech data                   */
   FILE *f_coded;               /* File of serial bits for transmission  */
 
-  if ( (f_original = fopen(inputFile, "rb")) == NULL) {
-     printf("Error opening file  %s !!\n", inputFile);
+  if ( (f_original = fopen(inPCM, "rb")) == NULL) {
+     printf("Error opening file  %s !!\n", inPCM);
      return;
   }
-  printf("Linear file    :  %s\n", inputFile);
+  printf("Linear file    :  %s\n", inPCM);
 
-  if ( (f_coded = fopen(codFile, "wb")) == NULL) {
-     printf("Error opening file  %s !!\n", codFile);
+  if ( (f_coded = fopen(outG729, "wb")) == NULL) {
+     printf("Error opening file  %s !!\n", outG729);
      return;
   }
 
@@ -70,19 +71,19 @@ void test1(){
   delete coder;
 }
 
-void test2(){
+void toPCM(){
 
   FILE *f_coded;
   FILE *f_decoded;
 
-  if ( (f_coded = fopen(codFile, "rb")) == NULL) {
-	 printf("Error opening file  %s !!\n", codFile);
+  if ( (f_coded = fopen(inG729, "rb")) == NULL) {
+	 printf("Error opening file  %s !!\n", inG729);
 	 return;
   }
-  printf("Codede file    :  %s\n", codFile);
+  printf("Codede file    :  %s\n", inG729);
 
-  if ( (f_decoded = fopen(encdecFile, "wb")) == NULL) {
-	 printf("Error opening file  %s !!\n", encdecFile);
+  if ( (f_decoded = fopen(outPCM, "wb")) == NULL) {
+	 printf("Error opening file  %s !!\n", outPCM);
 	 return;
   }
 
@@ -121,8 +122,8 @@ int main() {
     setvbuf(   stderr, NULL, _IOLBF , 0);
     setvbuf(   stdin, NULL, _IOLBF , 0);
 
-    test1();//опаньки, и закодировали
-    test2();//опаньки, и раскодировали
+   toG729();//опаньки, и закодировали
+   toPCM();//опаньки, и раскодировали
 
 	return 0;
 }
