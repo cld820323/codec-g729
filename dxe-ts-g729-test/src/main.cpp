@@ -13,7 +13,8 @@ using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <windows.h>
+#include <process.h>
 
 #include "include/codec729.h"
 
@@ -116,14 +117,22 @@ void toPCM(){
   delete decoder;
 }
 
+void __cdecl thread_proc(void* pParam)
+{
+printf("Hello from thread!\n");
+}
+
 int main() {
   //_IOFBF
     setvbuf(   stdout, NULL, _IOLBF , 0);
     setvbuf(   stderr, NULL, _IOLBF , 0);
     setvbuf(   stdin, NULL, _IOLBF , 0);
 
+    _beginthread(thread_proc, 0, 0);
+
+    /*
    toG729();//опаньки, и закодировали
-   toPCM();//опаньки, и раскодировали
+   toPCM();//опаньки, и раскодировали*/
 
 	return 0;
 }
