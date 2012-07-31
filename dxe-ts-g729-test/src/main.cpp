@@ -35,8 +35,8 @@ void toG729(int Counter){
   string number;
   sprintf(const_cast<char*>(number.c_str()),"%d",Counter);
 
-  inPCM = inPCM + ".wav";
-  outG729 = outG729+ number.c_str() + ".out";
+  inPCM = inPCM + ".in";
+  outG729 = outG729+ number.c_str() + ".cod";
   if ( (f_original = fopen(inPCM.c_str(), "rb")) == NULL) {
      printf("Error opening file  %s !!\n", inPCM.c_str());
      return;
@@ -86,8 +86,8 @@ void toPCM(int Counter){
   string number;
   sprintf(const_cast<char*>(number.c_str()),"%d",Counter);
 
-  inG729 = inG729 + number.c_str()+ ".out";
-  outPCM = outPCM+ number.c_str() + ".wav";
+  inG729 = inG729 + number.c_str()+ ".cod";
+  outPCM = outPCM+ number.c_str() + ".out";
 
   if ( (f_coded = fopen(inG729.c_str(), "rb")) == NULL) {
 	 printf("Error opening file  %s !!\n", inG729.c_str());
@@ -111,13 +111,13 @@ void toPCM(int Counter){
   while (fread(serial, sizeof(char), L_G729A_FRAME_COMPRESSED, f_coded) == L_G729A_FRAME_COMPRESSED)
   {
 	decoder->addData(serial,L_G729A_FRAME_COMPRESSED);
-
-	printf("Decode frame %d\r", ++frame);
-  }
 	int size;
 	const uint8_t *encdec = decoder->getResult(size);
 	fwrite(encdec, sizeof(char), size, f_decoded);
 	decoder->releaseResult();
+
+	printf("Decode frame %d\r", ++frame);
+  }
 
   fclose(f_coded);
   fclose(f_decoded);
@@ -130,7 +130,7 @@ void toPCM(int Counter){
 }
 
 
-#define THREAD_NUM	30
+#define THREAD_NUM	1
 
 unsigned Counter=THREAD_NUM;
 unsigned __stdcall threadProc( void* pArguments )
