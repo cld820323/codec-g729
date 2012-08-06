@@ -130,7 +130,7 @@ void toPCM(int Counter){
 }
 
 
-#define THREAD_NUM	1
+#define THREAD_NUM	3
 
 unsigned Counter=THREAD_NUM;
 unsigned __stdcall threadProc( void* pArguments )
@@ -138,7 +138,7 @@ unsigned __stdcall threadProc( void* pArguments )
 	//printf( "ID of %d-th thread = %d \n", Counter, (int)GetCurrentThreadId());
 
 	toG729((int)GetCurrentThreadId());//опаньки, и закодировали
-	toPCM((int)GetCurrentThreadId());//опаньки, и раскодировали
+	//toPCM((int)GetCurrentThreadId());//опаньки, и раскодировали
 
 	Counter--;
     _endthreadex( 0 );
