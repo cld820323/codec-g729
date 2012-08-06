@@ -130,7 +130,7 @@ void toPCM(int Counter){
 }
 
 
-#define THREAD_NUM	3
+#define THREAD_NUM	30
 
 unsigned Counter=THREAD_NUM;
 unsigned __stdcall threadProc( void* pArguments )
@@ -152,12 +152,19 @@ int main() {
     setvbuf(   stdin, NULL, _IOLBF , 0);
 
     HANDLE hThread[THREAD_NUM];
+    clock_t start, finish;
+    double duration;
+    start = clock();
     for(int i=0; i<THREAD_NUM; i++)
     {
 		unsigned threadID;
 		hThread[i] = (HANDLE)_beginthreadex( NULL, 0, &threadProc, NULL, 0, &threadID );
     }
     while(Counter){Sleep(0);}
+    finish = clock();
+    duration = (double)(finish - start) / CLOCKS_PER_SEC;
+    printf( "\n All thread finished after %2.1f seconds\n", duration );
+
     for(int i=0; i<THREAD_NUM; i++)CloseHandle(hThread[i]);
 
 	return 0;
