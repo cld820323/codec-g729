@@ -61,7 +61,7 @@ public:
     sprintf(const_cast<char*>(strID.c_str()),"%d",(int)GetCurrentThreadId());
     string libName = "libEasyG729";
     libName = libName+strID.c_str()+".dll";
-    CopyFile("libEasyG729.dll", libName.c_str(),FALSE);
+    CopyFile("libEasyG729.dll", libName.c_str(),TRUE);
 
     hinstLib = LoadLibrary(libName.c_str());
 
@@ -84,7 +84,6 @@ public:
   }
 
   ~CdxeCodec_G729(){
-	  FreeLibrary(hinstLib);
 	  if(direction==_coder){
 		  releaseAdr = (PROC_RELEASE) GetProcAddress(hinstLib, "release_encoder");
 		  //release_encoder(hEncoder);
@@ -93,6 +92,13 @@ public:
 		  releaseAdr = (PROC_RELEASE) GetProcAddress(hinstLib, "release_decoder");
 		  //release_decoder(hDecoder);
 	  }
+	  FreeLibrary(hinstLib);
+
+	  string strID;
+	  sprintf(const_cast<char*>(strID.c_str()),"%d",(int)GetCurrentThreadId());
+	  string libName = "libEasyG729";
+	  libName = libName+strID.c_str()+".dll";
+	  DeleteFile(libName.c_str());
   }
 private:
   ///направление кодирования
