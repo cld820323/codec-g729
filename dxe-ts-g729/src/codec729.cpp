@@ -29,7 +29,11 @@ const uint8_t* CdxeCodec_G729::getResult(int& _size) {
 				inBuf[j] = buffer[i]|(short)buffer[i+1]<<8;
 			}
 			buffer.erase(buffer.begin(),buffer.begin()+L_G729A_FRAME*2);
-			encoder(hEncoder, inBuf, tmp_buffer+_size);
+
+			encodeAdr = (PROC_ENCODE) GetProcAddress(hinstLib, "encoder");
+			(encodeAdr)(hEncoder, inBuf, tmp_buffer+_size);
+
+			//encoder(hEncoder, inBuf, tmp_buffer+_size);
 			_size+=L_G729A_FRAME_COMPRESSED;
 		}
 	}else
@@ -42,7 +46,11 @@ const uint8_t* CdxeCodec_G729::getResult(int& _size) {
 				serial[i] = buffer[i];
 			}
 			buffer.erase(buffer.begin(),buffer.begin()+L_G729A_FRAME_COMPRESSED);
-			decoder(hDecoder, serial, outBuf+_size/2);
+
+			decodeAdr = (PROC_DECODE) GetProcAddress(hinstLib, "decoder");
+			(decodeAdr)(hDecoder, serial, outBuf+_size/2);
+
+			//decoder(hDecoder, serial, outBuf+_size/2);
 			_size+=L_G729A_FRAME*2;
 		}
 		tmp_buffer = new uint8_t[_size];
